@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>BA Bougie – Test de parfums</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- EMAILJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init("SLRuh9LgAmd1UAx2d"); // 🔴 Ta Public Key
+    })();
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f4f0;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    .produits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 40px auto;
+    }
+    .carte {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      text-align: center;
+      position: relative;
+    }
+    .carte h2 {
+      margin-top: 10px;
+    }
+    .carte button {
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .counter {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #c49a6c;
+      color: #fff;
+      font-weight: bold;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    .form-box {
+      background: #fff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #c49a6c;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 17px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #confirmation {
+      text-align: center;
+      margin-top: 15px;
+      color: green;
+    }
+    .note {
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🕯️ Quelle bougie te tente le plus ?</h1>
+<p style="text-align:center;">
+  Aide-nous à choisir les prochains parfums à produire 🌿
+</p>
+
+<!-- PRODUITS -->
+<div class="produits">
+
+  <div class="carte">
+    <h2>🌸 Fleurs de cerisier</h2>
+    <div class="counter" id="counter-cerisier">0</div>
+    <p>Délicate, florale et apaisante.</p>
+    <button onclick="countClick('cerisier'); prefillParfum('Fleurs de cerisier')">
+      Je suis intéressé(e)
+    </button>
+  </div>
+
+  <div class="carte">
+    <h2>🍓 Vanille & petits fruits</h2>
+    <div class="counter" id="counter-vanille">0</div>
+    <p>Gourmande, douce et réconfortante.</p>
+    <button onclick="countClick('vanille'); prefillParfum('Vanille & petits fruits')">
+      Je suis intéressé(e)
+    </button>
+  </div>
+
+</div>
+
+<!-- FORMULAIRE -->
+<div class="form-box">
+  <h2 style="text-align:center;">💌 Être informé(e)</h2>
+  <p style="text-align:center;">
+    Laisse ton courriel pour être avisé(e) du lancement.
+  </p>
+
+  <form onsubmit="sendEmail(event)">
+    <input type="text" id="prenom" placeholder="Prénom" required>
+    <input type="email" id="email" placeholder="Courriel" required>
+
+    <select id="parfum" required>
+      <option value="">Parfum qui t’intéresse</option>
+      <option value="Fleurs de cerisier">🌸 Fleurs de cerisier</option>
+      <option value="Vanille & petits fruits">🍓 Vanille & petits fruits</option>
+    </select>
+
+    <textarea id="message" placeholder="Je voudrais commander / commentaire..." rows="3"></textarea>
+
+    <button type="submit" class="submit-btn">
+      M’aviser
+    </button>
+  </form>
+
+  <p id="confirmation"></p>
+  <p class="note">Aucun spam. Désinscription possible en tout temps.</p>
+</div>
+
+<!-- SCRIPT -->
+<script>
+let sending = false;
+
+// Charger les compteurs depuis localStorage
+function loadCounters() {
+  const data = JSON.parse(localStorage.getItem('clicsBougies')) || { cerisier: 0, vanille: 0 };
+  document.getElementById('counter-cerisier').innerText = data.cerisier;
+  document.getElementById('counter-vanille').innerText = data.vanille;
+}
+
+// Incrémenter le compteur
+function countClick(parfum) {
+  let data = JSON.parse(localStorage.getItem('clicsBougies')) || { cerisier: 0, vanille: 0 };
+  data[parfum]++;
+  localStorage.setItem('clicsBougies', JSON.stringify(data));
+  loadCounters();
+}
+
+// Pré-remplir le parfum
+function prefillParfum(parfum) {
+  document.getElementById('parfum').value = parfum;
+  document.getElementById('prenom').focus();
+}
+
+// Envoyer EmailJS
+function sendEmail(event) {
+  event.preventDefault();
+  if (sending) return;
+  sending = true;
+
+  const data = {
+    prenom: document.getElementById('prenom').value,
+    email: document.getElementById('email').value,
+    parfum: document.getElementById('parfum').value,
+    message: document.getElementById('message').value,
+    date: new Date().toLocaleString()
+  };
+
+  emailjs.send(
+    "service_jbnba8q",
+    "template_9cjxkxs",
+    data
+  ).then(() => {
+    document.getElementById('confirmation').innerText =
+      "Merci 💛 On te contactera très bientôt.";
+    event.target.reset();
+    document.getElementById('message').value = "";
+    sending = false;
+  }).catch((error) => {
+    alert("Erreur EmailJS. Voir console.");
+    console.error("EmailJS error:", error);
+    sending = false;
+  });
+}
+
+// Initialisation au chargement
+window.onload = loadCounters;
+</script>
+
+</body>
+</html>
